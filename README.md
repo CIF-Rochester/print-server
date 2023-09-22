@@ -2,9 +2,31 @@ CIF Print Server
 ------------------
 Creation of a new print server for CIF that eliminates bloat and allows greater maintainability.
 
-Start-Up
+Set Up
 ------------------
-Pull the repository, and set up a virtual environment. Download the dependencies from requirements.txt, and serve the Flask App.
+
+After pulling the repository, you can get the requirements in one of two ways:
+
+1. **(Preferred)** If you have [devenv](https://devenv.sh) installed, or are
+using [Nix](https://nixos.org), start up the dev shell using the `flake.nix`
+file. If you also have [direnv](https://direnv.net) set up, this will happen
+automatically.
+
+2. Set up a **Python 3.10.13** venv and install dependencies from `requirements.txt`.
+
+Running in Development
+-------------------
+
+In development, run:
+
+```sh
+python3 app.py
+```
+
+Deploying
+-------------------
+
+*TODO: deploy steps*
 
 To-Do
 ------------------

@@ -2,6 +2,10 @@
 config.toml
 printlogs.db
 
+# devenv/direnv local files
+.direnv/
+.devenv/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

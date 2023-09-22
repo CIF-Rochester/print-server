@@ -8,12 +8,12 @@ def require_field(config: Dict, location: str, key: str, message='') -> Any:
   return config[key]
 
 class PrintingConfig:
-  max_pages: int
+  max_copies: int
   printer_bw: str
   printer_color: str
 
   def __init__(self, printing_config: Dict) -> None:
-    self.max_pages = require_field(printing_config, 'config.toml#printing', 'max_pages')
+    self.max_copies = require_field(printing_config, 'config.toml#printing', 'max_copies')
     self.printer_bw = require_field(printing_config, 'config.toml#printing', 'printer_bw')
     self.printer_color = require_field(printing_config, 'config.toml#printing', 'printer_color')
 
