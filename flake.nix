@@ -34,6 +34,10 @@
                     venv.requirements = ./requirements.txt;
                   };
 
+                  packages = [
+                    pkgs.python310Packages.python-lsp-server
+                  ];
+
                   # some of the python packages used need to be compiled
                   languages.c.enable = true;
                 }
