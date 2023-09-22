@@ -13,10 +13,10 @@ import os
 
 # Get the config so configuration errors can be caught immediately on server start
 import config
-config.get_config()
+cfg = config.get_config()
 
 app = Flask(__name__ , template_folder="templates", static_folder="static")
-app.config['SECRET_KEY'] = "placeholder"
+app.config['SECRET_KEY'] = cfg.secret_key
 db = SQLAlchemy(app)
 
 loginManager = LoginManager()
@@ -56,7 +56,7 @@ def login():
         netid = None
         password = None
         if form.validate_on_submit():
-            #only using auth() for testing purposes, will be replaced with auth_citadel() later, which only runs on linux vvv
+            #only using auth() for testing purposes, will be replaced with auth_citadel() later, which only runs on linux
             #user = auth.auth_citadel(form.netid.data, form.password.data)
             user = auth.auth(form.netid.data, form.password.data)
 
@@ -120,7 +120,6 @@ def printcolor():
 @app.route("/printsent")
 def printsent():
     return "Print Job Recieved"
-
 
 
 if __name__ == "__main__":

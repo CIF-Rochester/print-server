@@ -2,6 +2,26 @@ from typing import Any, Dict
 
 import toml
 
+'''
+Sample config:
+
+```toml
+# How to authenticate users. 'ldap' to talk to an LDAP server, or 'test' for
+# DB test users.
+auth_mode = 'ldap'
+secret_key = 'RANDOM_STRING'
+
+[printing]
+max_copies = 5
+printer_bw = 'black and white printer device name'
+printer_color = 'color printer device name'
+
+[ldap]
+host = 'ldap://ldap.host.com'
+base_dn = 'cn=baseDnForUsers,dn=ldap,dn=host,dn=com'
+```
+'''
+
 def require_field(config: Dict, location: str, key: str, message='') -> Any:
   if key not in config:
     raise ValueError(f'{location} is missing a required field: {key}. {message}')
@@ -27,18 +47,21 @@ class LDAPConfig:
 
 class Config:
   auth_mode: str
+  secret_key: str
   printing: PrintingConfig
   ldap: LDAPConfig
 
   def __init__(self, config: Dict) -> None:
     self.auth_mode = require_field(config, 'config.toml', 'auth_mode')
-    if self.auth_mode not in ['test', 'citadel']:
-      raise ValueError(f'config.toml#auth_mode specifies an invalid value "{self.auth_mode}", expected one of "test", "citadel"')
+    if self.auth_mode not in ['test', 'ldap']:
+      raise ValueError(f'config.toml#auth_mode specifies an invalid value "{self.auth_mode}", expected one of "test", "ldap"')
+
+    self.secret_key = require_field(config, 'config.toml', 'secret_key')
     
     self.printing = PrintingConfig(require_field(config, 'config.toml', 'printing'))
 
-    if self.auth_mode == 'citadel':
-      self.ldap = LDAPConfig(require_field(config, 'config.toml', 'ldap', message='This field is required because auth_mode is set to citadel.'))
+    if self.auth_mode == 'ldap':
+      self.ldap = LDAPConfig(require_field(config, 'config.toml', 'ldap', message='This field is required because auth_mode is set to \'ldap\'.'))
 
 global_config: Config = None
 
@@ -47,20 +70,6 @@ def get_config() -> Config:
   Read and validate the config stored in `config.toml`. Caches the results to
   only read the file once.
 
-  Sample config:
-
-  ```toml
-  auth_mode = 'citadel'
-
-  [printing]
-  max_copies = 5
-  printer_bw = 'black and white printer device name'
-  printer_color = 'color printer device name'
-
-  [ldap]
-  host = 'ldap://ldap.host.com'
-  base_dn = 'cn=baseDnForUsers,dn=ldap,dn=host,dn=com'
-  ```
   '''
 
   global global_config

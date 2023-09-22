@@ -14,6 +14,9 @@ automatically.
 
 2. Set up a **Python 3.10.13** venv and install dependencies from `requirements.txt`.
 
+Then, create a `config.toml`. See `config.py` for descriptions of available and
+required options.
+
 Running in Development
 -------------------
 
