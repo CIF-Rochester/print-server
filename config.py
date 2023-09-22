@@ -10,12 +10,15 @@ Sample config:
 # DB test users.
 auth_mode = 'ldap'
 secret_key = 'RANDOM_STRING'
+# Absolute or relative path is fine.
+sqlite_db = 'path/to/db/file.sqlite'
 
 [printing]
 max_copies = 5
 printer_bw = 'black and white printer device name'
 printer_color = 'color printer device name'
 
+# This section only required if auth_mode='ldap'
 [ldap]
 host = 'ldap://ldap.host.com'
 base_dn = 'cn=baseDnForUsers,dn=ldap,dn=host,dn=com'
@@ -48,6 +51,7 @@ class LDAPConfig:
 class Config:
   auth_mode: str
   secret_key: str
+  sqlite_db: str
   printing: PrintingConfig
   ldap: LDAPConfig
 
@@ -57,6 +61,8 @@ class Config:
       raise ValueError(f'config.toml#auth_mode specifies an invalid value "{self.auth_mode}", expected one of "test", "ldap"')
 
     self.secret_key = require_field(config, 'config.toml', 'secret_key')
+
+    self.sqlite_db = require_field(config, 'config.toml', 'sqlite_db')
     
     self.printing = PrintingConfig(require_field(config, 'config.toml', 'printing'))
 

@@ -1,6 +1,6 @@
 # Project specific files
 config.toml
-printlogs.db
+sqlite.db
 
 # devenv/direnv local files
 .direnv/
