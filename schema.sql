@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS PrintLogs;
 
 CREATE TABLE "PrintLogs"(
     "printid" INTEGER NOT NULL,
+    "username" TEXT NOT NULL,
     "filename" TEXT NOT NULL,
     "printer" TEXT NOT NULL,
     "datetime" TEXT NOT NULL,
