@@ -48,7 +48,6 @@
 
         input[type='text'],
         input[type='file'],
-        input[type='number'],
         input[type='submit'],
         select {
             font-size: 1.0rem;
@@ -77,32 +76,21 @@
     </style>
 </head>
 
-<!-- ToDo: Inherit from a base template -->
-
 <body>
+
+
     <div id="root" >
         <div id="header">
             <div>Web Printer</div>
-            <!-- Change the printer name here.  -->
             <div>{{printer}}</div>
-            <div>Welcome {{username}}!</div>
         </div>
-        <div id="mainBody">
-            <form id='form' method='post' enctype=multipart/form-data>
-                <input type="hidden" name="username" id="username" value={{username}}>
-                <label for="file">File(s)</label>
-                <input type=file name='file' multiple>
-                <label for="pages">Pages</label>
-                <input type="text" name="pages" id="pages" placeholder="All pages">
-                <label for="perpage">Pages per sheet</label>
-                <input type="number" name="perpage" value="1" min="1" id="perpage">
-                <label for="orientation">Layout</label>
-                <select name="orientation" id="orientation">
-                    <option value="Portrait">Portrait</option>
-                    <option value="Landscape">Landscape</option>
-                </select>
-                <input id="form-submit" name='submit-button' type=submit value=Print>
-            </form>
+        <div id="mainBody" style="text-align: center;">
+            <div style="padding-bottom: 1rem;">
+                {{data}}
+            </div>
+            <div>
+                <a href="{{ url_for('update_file') }}">Return to home</a>
+            </div>
         </div>
 
 
