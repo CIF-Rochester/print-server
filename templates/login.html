@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:line-height="http://www.w3.org/1999/xhtml">
 
 <head>
     <meta charset="UTF-8">
@@ -48,6 +48,7 @@
 
         input[type='text'],
         input[type='file'],
+        input[type='number'],
         input[type='submit'],
         select {
             font-size: 1.0rem;
@@ -76,29 +77,24 @@
     </style>
 </head>
 
+<!-- ToDo: Inherit from a base template -->
+
 <body>
-
-
     <div id="root" >
         <div id="header">
             <div>Web Printer</div>
-            <div>HP-ColorLaserJet-M153-M154</div>
+            <!-- Change the printer name here.  -->
+            <div>{{printer}}</div>
+            <!-- ToDo: Use pycups to detect printer name dynamically -->
         </div>
-        <div id="mainBody" style="text-align: center;">
-            <div style="padding-bottom: 1rem;">
-                {{data}}
-            </div>
-            <div>
-                <a href="{{ url_for('upload_file') }}">Return to home</a>
-            </div>
-        </div>
-
-
-        <div id="footer">
-            <div id="add">
-                Developed by <a href="https://github.com/Koushikphy"><i
-                        class="fa fa-github" style="font-size:24px"></i> Koushikphy</a>
-            </div>
+        <div id="mainBody">
+            <form id='form' method=post enctype=multipart/form-data>
+                <label for="username">Username</label>
+                <input type="text" name="username" id="username">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password">
+                <input id="form-submit" name='submit-button' type=submit value=Login>
+            </form>
         </div>
     </div>
     </div>
