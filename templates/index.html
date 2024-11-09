@@ -82,15 +82,13 @@
 <body>
     <div id="root" >
         <div id="header">
-            <div>Web Printer</div>
-            <!-- Change the printer name here.  -->
-            <div>{{printer}}</div>
+            <div>CIF Web Printer</div>
             <div>Welcome {{username}}!</div>
         </div>
         <div id="mainBody">
             <form id='form' method='post' enctype=multipart/form-data>
                 <input type="hidden" name="username" id="username" value={{username}}>
-                <label for="file">File(s)</label>
+                <label for='file'>File(s)</label>
                 <input type=file name='file' multiple>
                 <label for="pages">Pages</label>
                 <input type="text" name="pages" id="pages" placeholder="All pages">
@@ -101,6 +99,8 @@
                     <option value="Portrait">Portrait</option>
                     <option value="Landscape">Landscape</option>
                 </select>
+                <label for="copies">Copies</label>
+                <input type="number" name="copies" value="1" min="1" id="copies">
                 <input id="form-submit" name='submit-button' type=submit value=Print>
             </form>
         </div>
@@ -108,8 +108,8 @@
 
         <div id="footer">
             <div id="add">
-                Developed by <a href="https://github.com/Koushikphy"><i
-                        class="fa fa-github" style="font-size:24px"></i> Koushikphy</a>
+                Github: <a href="https://github.com/CIF-Rochester/print-server"><i
+                        class="fa fa-github" style="font-size:24px"></i></a>
             </div>
         </div>
     </div>
