@@ -84,12 +84,11 @@
             <div>CIF Web Printer</div>
         </div>
         <div id="mainBody" style="text-align: center;">
-            <div style="padding-bottom: 1rem;">
-                {{data}}
-            </div>
-            <div>
-                <a href="{{ url_for('update_file') }}">Return to home</a>
-            </div>
+            <div style="padding-bottom: 1rem;">Print job submitted successfully</div>
+            <form id='form' method=post enctype=multipart/form-data>
+                <input type="hidden" name="username" id="username" value={{username}}>
+                <input id="form-submit" name='submit-button' type=submit value="Return to Home">
+            </form>
         </div>
 
 
