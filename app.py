@@ -2,7 +2,6 @@ import os
 import logging
 
 from flask import Flask, request, redirect, url_for, render_template
-from paramiko.ssh_exception import SSHException
 from subprocess import run
 from datetime import datetime
 import subprocess
@@ -11,8 +10,9 @@ from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = 'FILE_STORE'
 PRINTER_NAME = 'Brother_HL_L3280CDW_series_USB'
+MAX_PAGES = 30
 # save time in seconds
-FILE_SAVE_TIME = 7 * 24 * 60 * 60
+FILE_SAVE_TIME = 24 * 60 * 60
 
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -31,7 +31,7 @@ def makeLogger(logFile):
     logger.addHandler(fh)
     return logger
 
-logger = makeLogger('webprinter.log')
+logger = makeLogger('printer.log')
 def getNumberOfPage(pdfFile):
     t = subprocess.run(f"pdfinfo {pdfFile}  | awk \"/^Pages:/ {{print $2}}\"",shell=True,stdout=subprocess.PIPE)#,text=True)
     v = t.stdout.strip()
@@ -62,23 +62,29 @@ def update_files():
     current_time = datetime.now()
     files = os.listdir(UPLOAD_FOLDER)
     for file in files:
-        if (current_time - datetime.strptime(file[:file.index("---")],'%H.%M.%S_%d-%m-%Y')).total_seconds() > FILE_SAVE_TIME:
+        if (current_time - datetime.strptime(file[:file.index("---")],'%H.%M.%S_%m-%d-%Y')).total_seconds() > FILE_SAVE_TIME:
             os.remove(f"{UPLOAD_FOLDER}/{file}")
 
 
 def upload_file(username):
     retCodes = []
+    error = ""
     try:
         pages = request.form.get('pages')
         ornt  = request.form.get('orientation')
         per_page = int(request.form.get('perpage'))
         copies = int(request.form.get('copies'))
-        for file in request.files.getlist('file'):
+        files = request.files.getlist('file')
+        for file in files:
             if not file or file.filename == '':
-                return render_template('result.html', printer=PRINTER_NAME, data="No file attached")
+                update_files()
+                return render_template('error.html', error="No file attached", username=username)
+            if file.filename[-4:] != '.pdf':
+                update_files()
+                return render_template('error.html', error="Attached file is not pdf", username=username)
             current_time = datetime.now()
-            time_string_file = current_time.strftime('%H.%M.%S_%d-%m-%Y')
-            time_string_log = current_time.strftime('%I:%M:%S %p %d-%m-%Y')
+            time_string_file = current_time.strftime('%H.%M.%S_%m-%d-%Y')
+            time_string_log = current_time.strftime('%I:%M:%S %p %m-%d-%Y')
             filename = f"{time_string_file}---{secure_filename(file.filename)}"
             newpath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
 
@@ -99,16 +105,16 @@ def upload_file(username):
             ret = printFile(newpath,pages,ornt,per_page, copies)
             retCodes.append(ret)
 
-        if all(retCodes)==0:
-            txt = "Print job submitted successfully"
-        else:
-            txt = "Unable to submit print job"
+        if all(retCodes)!=0:
+            update_files()
+            return render_template('success.html', error="")
 
     except Exception as e:
         print(e)
-        txt = "Unable to submit print job"
+        update_files()
+        return render_template('error.html', error=str(e), username=username)
     update_files()
-    return render_template('result.html', data=txt)
+    return render_template('success.html', error=error, username=username)
 
 @app.route('/', methods=['GET', 'POST'])
 def update_file():
@@ -118,13 +124,15 @@ def update_file():
         username = request.form.get("username")
         password = request.form.get("password")
         try:
-            client.connect("citadel.cif.rochester.edu", username=username, password=password, timeout=-1)
-        except SSHException:
+            client.connect("citadel.cif.rochester.edu", username=username, password=password, timeout=30)
+        except Exception as e:
             return render_template('login.html')
         else:
             return render_template('index.html', username=username)
-    else:
+    elif request.form['submit-button'] == 'Print':
         return upload_file(request.form.get("username"))
+    else:
+        return render_template('index.html', username=request.form.get("username"))
 
 if __name__ == '__main__':
     # from waitress import serve
