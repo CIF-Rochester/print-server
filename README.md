@@ -6,10 +6,11 @@ Creation of a new print server for CIF that eliminates bloat and allows greater 
 Print data is retrieved from print.cif.rochester.edu? hosted by the server.  After ensuring files are nonnull and all pdfs,
 a copy of each file uploaded is saved to the path labeled ``UPLOAD_FOLDER`` in app.py, prefixed by the time and date of
 attempted print.  An entry to print.log is also created containing the date, time, user, file, and relevant page info.
-Note a print need not be successful to have a log entry.  Any error thrown will result in a new log entry and the file
-uploaded to storage.  The two exceptions are the "No file attached" and "Attached file is not pdf" errors.  Also note that
-file storage is only updated when a print is attempted and not at regular intervals.  This means that the files in storage
-represent all attempted print files within a certain type of the latest attempted print, not necessarily the current date.
+Note a print need not be successful to have a log entry.  While most syntax errors such as "No file attached" and "Maximum page limit exceeded"
+will not log the attempts, errors from the lpr command are thrown before logging and thus are logged and the files saved.
+All such failed print attempts are denoted with "PRINT FAILED" in the log.  Also note that file storage is only updated
+when a print is attempted and not at regular intervals.  This means that the files in storage represent all attempted print
+files within a certain time of the latest attempted print, not necessarily the current date.
 
 After any attempted print without exception, file storage is updated and all files older than a certain threshold are deleted.
 This threshold is specified by the ``FILE_SAVE_TIME`` parameter in app.py

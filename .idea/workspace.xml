@@ -4,16 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7c1c6588-698b-4eb8-a4de-fc600a0dad54" name="Changes" comment="files are now saved for specified time frame">
-      <change afterPath="$PROJECT_DIR$/templates/success.html" afterDir="false" />
+    <list default="true" id="7c1c6588-698b-4eb8-a4de-fc600a0dad54" name="Changes" comment="adjusted error.html and created success.html&#10;error.html and success.html now return to index.html instead of login.html&#10;&quot;Attached file is not pdf&quot; error added.&#10;All errors thrown by the lpr command are shown on the website error page&#10;updated README.md">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/db.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/example.config.cfg" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/result.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/error.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/schema.sql" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -120,7 +117,15 @@
       <option name="project" value="LOCAL" />
       <updated>1731180074110</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="adjusted error.html and created success.html&#10;error.html and success.html now return to index.html instead of login.html&#10;&quot;Attached file is not pdf&quot; error added.&#10;All errors thrown by the lpr command are shown on the website error page&#10;updated README.md">
+      <option name="closed" value="true" />
+      <created>1731303782872</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1731303782872</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -137,6 +142,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Implemented Citadel login and username logging" />
     <MESSAGE value="files are now saved for a week" />
-    <option name="LAST_COMMIT_MESSAGE" value="files are now saved for a week" />
+    <MESSAGE value="adjusted error.html and created success.html&#10;error.html and success.html now return to index.html instead of login.html&#10;&quot;Attached file is not pdf&quot; error added.&#10;All errors thrown by the lpr command are shown on the website error page&#10;updated README.md" />
+    <option name="LAST_COMMIT_MESSAGE" value="adjusted error.html and created success.html&#10;error.html and success.html now return to index.html instead of login.html&#10;&quot;Attached file is not pdf&quot; error added.&#10;All errors thrown by the lpr command are shown on the website error page&#10;updated README.md" />
   </component>
 </project>
