@@ -1,4 +1,5 @@
 FILE_STORE
 .venv
 config.cfg
+*.log
 .idea
