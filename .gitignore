@@ -2,3 +2,4 @@ FILE_STORE
 .venv
 config.cfg
 webprinter.log
+.idea
