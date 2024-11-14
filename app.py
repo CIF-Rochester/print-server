@@ -1,6 +1,7 @@
 import os
 import logging
 
+import argparse
 from flask import Flask, request, redirect, url_for, render_template
 from subprocess import run
 from datetime import datetime
@@ -9,22 +10,15 @@ import paramiko
 import PyPDF2
 import math
 from werkzeug.utils import secure_filename
+from config import load_config, Config
 
-UPLOAD_FOLDER = 'FILE_STORE'
-PRINTER_NAME = 'Brother_HL_L3280CDW_series_USB'
-MAX_PAGES = 50
-# save time in seconds
-FILE_SAVE_TIME = 7 * 24 * 60 * 60
+SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
+DEFAULT_CFG_PATH = os.path.join(SCRIPT_PATH, "config.cfg")
 
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def makeLogger(logFile):
     logger = logging.getLogger(__name__)
@@ -32,8 +26,6 @@ def makeLogger(logFile):
     fh = logging.FileHandler(logFile)
     logger.addHandler(fh)
     return logger
-
-logger = makeLogger('printer.log')
 
 def parsePages(str, total_pages):
     if str == '':
@@ -65,10 +57,10 @@ def printFile(file,pages,orientation,per_page, copies):
 
 def update_storage():
     current_time = datetime.now()
-    files = os.listdir(UPLOAD_FOLDER)
+    files = os.listdir(config.logging.file_storage_path)
     for file in files:
-        if (current_time - datetime.strptime(file[:file.index("---")],'%H.%M.%S_%m-%d-%Y')).total_seconds() > FILE_SAVE_TIME:
-            os.remove(f"{UPLOAD_FOLDER}/{file}")
+        if (current_time - datetime.strptime(file[:file.index("---")],'%H.%M.%S_%m-%d-%Y')).total_seconds() > config.logging.file_storage_time:
+            os.remove(f"{config.logging.file_storage_path}/{file}")
 
 def allZeros(retCodes):
     for retCode in retCodes:
@@ -101,14 +93,14 @@ def upload_file(username):
                 return render_template('error.html', error="Cannot parse specified pages", username=username)
         total_pages = math.ceil(total_pages / per_page)
         total_pages *= copies
-        if total_pages > MAX_PAGES:
-            return render_template('error.html', error=f"Page limit of {MAX_PAGES} exceeded", username=username)
+        if total_pages > config.print_limitations.max_pages:
+            return render_template('error.html', error=f"Page limit of {config.print_limitations.max_pages} exceeded", username=username)
         for file in files:
             current_time = datetime.now()
             time_string_file = current_time.strftime('%H.%M.%S_%m-%d-%Y')
             time_string_log = current_time.strftime('%I:%M:%S %p %m-%d-%Y')
             filename = f"{time_string_file}---{secure_filename(file.filename)}"
-            newpath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            newpath = os.path.join(config.logging.file_storage_path, filename)
 
             file.save(newpath)
 
@@ -160,6 +152,19 @@ def update_file():
         return render_template('index.html', username=request.form.get("username"))
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description="Print server for remotely printing to CIF lab printer")
+    parser.add_argument('--config', '-c', help='Path to print server config file.', default=DEFAULT_CFG_PATH)
+
+    args = parser.parse_args()
+
+    path_to_cfg = args.config
+    config: Config = load_config(path_to_cfg)
+    logger = makeLogger(config.logging.log_path)
+    if not os.path.exists(config.logging.file_storage_path):
+        os.makedirs(config.logging.file_storage_path)
+
+
     # from waitress import serve
     # serve(app,host='0.0.0.0',port=8080)
     # gunicorn -w 4 'web_printer:app' -b '0.0.0.0:8080'
