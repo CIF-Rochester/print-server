@@ -20,9 +20,12 @@ client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 app = Flask(__name__)
 
 def makeLogger(logFile):
+    formatter = logging.Formatter(fmt='[%(asctime)s] %(levelname)-8s %(message)s',
+                                  datefmt='%Y-%m-%d %H:%M:%S')
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
     fh = logging.FileHandler(logFile)
+    fh.setFormatter(formatter)
     logger.addHandler(fh)
     return logger
 
@@ -86,7 +89,6 @@ def upload_file(username):
                 return render_template('error.html', error="Attached file is not pdf", username=username)
             current_time = datetime.now()
             time_string_file = current_time.strftime('%H.%M.%S_%m-%d-%Y')
-            time_string_log = current_time.strftime('%I:%M:%S %p %m-%d-%Y')
             filename = f"{time_string_file}---{secure_filename(file.filename)}"
             newpath = os.path.join(config.logging.file_storage_path, filename)
 
@@ -96,7 +98,7 @@ def upload_file(username):
             pdf_reader = PyPDF2.PdfReader(file)
             pg = len(pdf_reader.pages)
 
-            txt = f"[{time_string_log}] {username} - File: {file.filename}"
+            txt = f"{username} - File: {file.filename}"
             if copies != 1:
                 txt += f", {copies} copies"
             txt += f", {pg} pages"
@@ -109,11 +111,11 @@ def upload_file(username):
                 total_pages += copies * math.ceil(parsePages(pages, pg) / per_page)
             except Exception as e:
                 txt += ", CANNOT PARSE SPECIFIED PAGES"
-                logger.info(txt)
+                logger.error(txt)
                 return render_template('error.html', error="Cannot parse specified pages", username=username)
             if total_pages > config.print_limitations.max_pages:
                 txt += f", PAGE LIMIT OF {config.print_limitations.max_pages} EXCEEDED"
-                logger.info(txt)
+                logger.error(txt)
                 return render_template('error.html',
                                        error=f"Page limit of {config.print_limitations.max_pages} exceeded",
                                        username=username)
@@ -122,6 +124,7 @@ def upload_file(username):
             retCodes.append(ret.returncode)
             if ret.returncode != 0:
                 txt += f", PRINT FAILED WITH EXIT CODE {ret.returncode}"
+                logger.error(txt)
             logger.info(txt)
 
         if not allZeros(retCodes):
