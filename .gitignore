@@ -3,3 +3,4 @@ FILE_STORE
 config.cfg
 *.log
 .idea
+.pycache
