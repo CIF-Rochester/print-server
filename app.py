@@ -5,7 +5,6 @@ import argparse
 from flask import Flask, request, redirect, url_for, render_template
 from subprocess import run
 from datetime import datetime
-import subprocess
 import paramiko
 import PyPDF2
 import math
@@ -46,7 +45,7 @@ def parsePages(str, total_pages):
 
 def printFile(file,pages,orientation,per_page, copies):
     # return 0
-    command = ['lpr',file,f'-#{copies}','-o', 'fit-to-page', '-o', f'number-up={per_page}', '-P', 'Brother_HL_L3280CDW_series_USB']
+    command = ['lpr',file,f'-#{copies}','-o', 'fit-to-page', '-o', f'number-up={per_page}', '-P', config.printer.printer_name]
     #^ Auto fit to page, provide custom scale later
     if pages:
         command.extend(['-o',f'page-ranges={pages}'])
@@ -85,17 +84,6 @@ def upload_file(username):
             if file.filename[-4:] != '.pdf':
                 update_storage()
                 return render_template('error.html', error="Attached file is not pdf", username=username)
-            pdf_reader = PyPDF2.PdfReader(file)
-            print_pages = len(pdf_reader.pages)
-            try:
-                total_pages += parsePages(pages, print_pages)
-            except Exception as e:
-                return render_template('error.html', error="Cannot parse specified pages", username=username)
-        total_pages = math.ceil(total_pages / per_page)
-        total_pages *= copies
-        if total_pages > config.print_limitations.max_pages:
-            return render_template('error.html', error=f"Page limit of {config.print_limitations.max_pages} exceeded", username=username)
-        for file in files:
             current_time = datetime.now()
             time_string_file = current_time.strftime('%H.%M.%S_%m-%d-%Y')
             time_string_log = current_time.strftime('%I:%M:%S %p %m-%d-%Y')
@@ -107,6 +95,7 @@ def upload_file(username):
             # log things
             pdf_reader = PyPDF2.PdfReader(file)
             pg = len(pdf_reader.pages)
+
             txt = f"[{time_string_log}] {username} - File: {file.filename}"
             if copies != 1:
                 txt += f", {copies} copies"
@@ -116,10 +105,23 @@ def upload_file(username):
             if per_page != 1:
                 txt += f", {per_page} per page"
 
+            try:
+                total_pages += copies * math.ceil(parsePages(pages, pg) / per_page)
+            except Exception as e:
+                txt += ", CANNOT PARSE SPECIFIED PAGES"
+                logger.info(txt)
+                return render_template('error.html', error="Cannot parse specified pages", username=username)
+            if total_pages > config.print_limitations.max_pages:
+                txt += f", PAGE LIMIT OF {config.print_limitations.max_pages} EXCEEDED"
+                logger.info(txt)
+                return render_template('error.html',
+                                       error=f"Page limit of {config.print_limitations.max_pages} exceeded",
+                                       username=username)
+
             ret = printFile(newpath,pages,ornt, per_page, copies)
-            retCodes.append(ret)
-            if ret != 0:
-                txt += ", PRINT FAILED"
+            retCodes.append(ret.returncode)
+            if ret.returncode != 0:
+                txt += f", PRINT FAILED WITH EXIT CODE {ret.returncode}"
             logger.info(txt)
 
         if not allZeros(retCodes):
