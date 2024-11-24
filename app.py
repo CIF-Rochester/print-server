@@ -46,7 +46,7 @@ def parsePages(str, total_pages):
         end = int(str[index+1:])
         return max(1, min(end, total_pages)) - min(total_pages, max(1, start)) + 1
 
-def printFile(file,pages,orientation,per_page, copies):
+def printFile(file, pages, orientation, per_page, copies, color):
     # return 0
     command = ['lpr',file,f'-#{copies}','-o', 'fit-to-page', '-o', f'number-up={per_page}', '-P', config.printer.printer_name]
     #^ Auto fit to page, provide custom scale later
@@ -54,6 +54,8 @@ def printFile(file,pages,orientation,per_page, copies):
         command.extend(['-o',f'page-ranges={pages}'])
     if orientation=='Landscape':
         command.extend(['-o','orientation-requested=4'])
+    if color == 'Black and White':
+        command.extend(['-o','saturation=0'])
     ret = run(command)
     return ret
 
@@ -75,6 +77,7 @@ def upload_file(username):
     error = ""
     try:
         pages = request.form.get('pages').replace(" ","")
+        color = request.form.get('color')
         ornt  = request.form.get('orientation')
         per_page = int(request.form.get('perpage'))
         copies = int(request.form.get('copies'))
@@ -120,7 +123,7 @@ def upload_file(username):
                                        error=f"Page limit of {config.print_limitations.max_pages} exceeded",
                                        username=username)
 
-            ret = printFile(newpath,pages,ornt, per_page, copies)
+            ret = printFile(newpath,pages,ornt, per_page, copies, color)
             retCodes.append(ret.returncode)
             if ret.returncode != 0:
                 txt += f", PRINT FAILED WITH EXIT CODE {ret.returncode}"

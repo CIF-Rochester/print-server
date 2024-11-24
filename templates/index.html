@@ -92,6 +92,13 @@
                 <input type=file name='file' multiple>
                 <label for="pages">Pages</label>
                 <input type="text" name="pages" id="pages" placeholder="All pages">
+                <label for="copies">Copies</label>
+                <input type="number" name="copies" value="1" min="1" id="copies">
+                <label for="color">Color</label>
+                <select name="color" id="color">
+                    <option value="Color">Color</option>
+                    <option value="Black and White">Black and White</option>
+                </select>
                 <label for="perpage">Pages per sheet</label>
                 <input type="number" name="perpage" value="1" min="1" id="perpage">
                 <label for="orientation">Layout</label>
@@ -99,8 +106,6 @@
                     <option value="Portrait">Portrait</option>
                     <option value="Landscape">Landscape</option>
                 </select>
-                <label for="copies">Copies</label>
-                <input type="number" name="copies" value="1" min="1" id="copies">
                 <input id="form-submit" name='submit-button' type=submit value=Print>
             </form>
         </div>
