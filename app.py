@@ -158,11 +158,8 @@ def upload_file(username):
             if ret.returncode != 0:
                 txt += f", PRINT FAILED WITH EXIT CODE {ret.returncode}"
                 logger.error(txt)
+                return render_template('error.html', error="lpr command error - Please turn on printer")
             logger.info(txt)
-
-        if not allZeros(retCodes):
-            update_storage()
-            return render_template('error.html', error="lpr command error - Please turn on printer")
 
     except Exception as e:
         print(e)
