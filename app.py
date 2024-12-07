@@ -20,6 +20,7 @@ import pymupdf
 
 SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
 DEFAULT_CFG_PATH = os.path.join(SCRIPT_PATH, "config.cfg")
+PDF_TO_IMAGE_DPI = 600
 
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -83,7 +84,7 @@ def convert_to_black_and_white(path, num_pages):
         # Converting pages to images
         input = pymupdf.open(path)
         for i in range(num_pages):
-            pix = input.load_page(i).get_pixmap(dpi=300)
+            pix = input.load_page(i).get_pixmap(dpi=PDF_TO_IMAGE_DPI)
             gray_pix = Pixmap(pymupdf.csGRAY, pix)
             img_path = os.path.join(temp_dir, f"page_{i}.png")
             gray_pix.save(img_path)
