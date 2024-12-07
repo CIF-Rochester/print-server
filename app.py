@@ -2,17 +2,25 @@ import os
 import logging
 
 import argparse
+import tempfile
+
+import img2pdf
+
 from flask import Flask, request, redirect, url_for, render_template
 from subprocess import run
 from datetime import datetime
 import paramiko
 import PyPDF2
 import math
+
+from pymupdf import Pixmap
 from werkzeug.utils import secure_filename
 from config import load_config, Config
+import pymupdf
 
 SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
 DEFAULT_CFG_PATH = os.path.join(SCRIPT_PATH, "config.cfg")
+PDF_TO_IMAGE_DPI = 600
 
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -46,7 +54,7 @@ def parsePages(str, total_pages):
         end = int(str[index+1:])
         return max(1, min(end, total_pages)) - min(total_pages, max(1, start)) + 1
 
-def printFile(file,pages,orientation,per_page, copies):
+def printFile(file, pages, orientation, per_page, copies):
     # return 0
     command = ['lpr',file,f'-#{copies}','-o', 'fit-to-page', '-o', f'number-up={per_page}', '-P', config.printer.printer_name]
     #^ Auto fit to page, provide custom scale later
@@ -70,11 +78,28 @@ def allZeros(retCodes):
             return False
     return True
 
+def convert_to_black_and_white(path, num_pages):
+    images = []
+    with tempfile.TemporaryDirectory() as temp_dir:  # Saves images temporarily in disk rather than RAM to speed up parsing
+        # Converting pages to images
+        input = pymupdf.open(path)
+        for i in range(num_pages):
+            pix = input.load_page(i).get_pixmap(dpi=PDF_TO_IMAGE_DPI)
+            gray_pix = Pixmap(pymupdf.csGRAY, pix)
+            img_path = os.path.join(temp_dir, f"page_{i}.png")
+            gray_pix.save(img_path)
+            images.append(img_path)
+        input.close()
+        os.remove(path)
+
+        with open(path, "bw") as gray_pdf:
+            gray_pdf.write(img2pdf.convert(images))
+
 def upload_file(username):
     retCodes = []
-    error = ""
     try:
         pages = request.form.get('pages').replace(" ","")
+        color = request.form.get('color')
         ornt  = request.form.get('orientation')
         per_page = int(request.form.get('perpage'))
         copies = int(request.form.get('copies'))
@@ -91,12 +116,15 @@ def upload_file(username):
             time_string_file = current_time.strftime('%H.%M.%S_%m-%d-%Y')
             filename = f"{time_string_file}---{secure_filename(file.filename)}"
             newpath = os.path.join(config.logging.file_storage_path, filename)
-
             file.save(newpath)
 
-            # log things
             pdf_reader = PyPDF2.PdfReader(file)
             pg = len(pdf_reader.pages)
+
+            if color == 'Black and White':
+                convert_to_black_and_white(newpath, pg)
+
+            # log things
 
             txt = f"{username} - File: {file.filename}"
             if copies != 1:
@@ -106,6 +134,8 @@ def upload_file(username):
                 txt += f", {pages} pages printed"
             if per_page != 1:
                 txt += f", {per_page} per page"
+            if color == 'Black and White':
+                txt += ", grayscale"
 
             try:
                 total_pages += copies * math.ceil(parsePages(pages, pg) / per_page)
@@ -119,17 +149,18 @@ def upload_file(username):
                 return render_template('error.html',
                                        error=f"Page limit of {config.print_limitations.max_pages} exceeded",
                                        username=username)
-
-            ret = printFile(newpath,pages,ornt, per_page, copies)
+            try:
+                ret = printFile(newpath,pages,ornt, per_page, copies)
+            except Exception as e:
+                txt += ", FAILED TO RUN SUBPROCESS"
+                logger.error(txt)
+                return render_template('error.html', error="Failed to run subprocess", username=username)
             retCodes.append(ret.returncode)
             if ret.returncode != 0:
                 txt += f", PRINT FAILED WITH EXIT CODE {ret.returncode}"
                 logger.error(txt)
+                return render_template('error.html', error="lpr command error - Please turn on printer")
             logger.info(txt)
-
-        if not allZeros(retCodes):
-            update_storage()
-            return render_template('error.html', error="lpr command error - Please turn on printer")
 
     except Exception as e:
         print(e)
