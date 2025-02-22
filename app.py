@@ -12,7 +12,7 @@ from datetime import datetime
 import paramiko
 import PyPDF2
 import math
-
+import time
 from pymupdf import Pixmap
 from werkzeug.utils import secure_filename
 from config import load_config, Config
@@ -63,6 +63,7 @@ def printFile(file, pages, orientation, per_page, copies):
     if orientation=='Landscape':
         command.extend(['-o','orientation-requested=4'])
     ret = run(command)
+    time.sleep(5)
     return ret
 
 def update_storage():
