@@ -22,6 +22,8 @@ SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
 DEFAULT_CFG_PATH = os.path.join(SCRIPT_PATH, "config.cfg")
 PDF_TO_IMAGE_DPI = 600
 
+BACKGROUND_COLOR="#0f0f0f"
+
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
@@ -112,10 +114,10 @@ def upload_file(username):
         for file in files:
             if not file or file.filename == '':
                 update_storage()
-                return render_template('error.html', error="No file attached", username=username)
+                return render_template('error.html', error="No file attached", username=username, color=BACKGROUND_COLOR)
             if file.filename[-4:] != '.pdf':
                 update_storage()
-                return render_template('error.html', error="Attached file is not pdf", username=username)
+                return render_template('error.html', error="Attached file is not pdf", username=username, color=BACKGROUND_COLOR)
             current_time = datetime.now()
             time_string_file = current_time.strftime('%H.%M.%S_%m-%d-%Y')
             filename = f"{time_string_file}---{secure_filename(file.filename)}"
@@ -146,24 +148,24 @@ def upload_file(username):
             except Exception as e:
                 txt += ", CANNOT PARSE SPECIFIED PAGES"
                 logger.error(txt)
-                return render_template('error.html', error="Cannot parse specified pages", username=username)
+                return render_template('error.html', error="Cannot parse specified pages", username=username, color=BACKGROUND_COLOR)
             if total_pages > config.print_limitations.max_pages:
                 txt += f", PAGE LIMIT OF {config.print_limitations.max_pages} EXCEEDED"
                 logger.error(txt)
                 return render_template('error.html',
                                        error=f"Page limit of {config.print_limitations.max_pages} exceeded",
-                                       username=username)
+                                       username=username, color=BACKGROUND_COLOR)
             try:
                 ret = printFile(newpath,pages,ornt, per_page, copies)
             except Exception as e:
                 txt += ", FAILED TO RUN SUBPROCESS"
                 logger.error(txt)
-                return render_template('error.html', error="Failed to run subprocess", username=username)
+                return render_template('error.html', error="Failed to run subprocess", username=username, color=BACKGROUND_COLOR)
             retCodes.append(ret.returncode)
             if ret.returncode != 0:
                 txt += f", PRINT FAILED WITH EXIT CODE {ret.returncode}"
                 logger.error(txt)
-                return render_template('error.html', error="lpr command error - Please turn on printer")
+                return render_template('error.html', error="lpr command error - Please turn on printer", color=BACKGROUND_COLOR)
             if total_pages > config.print_limitations.discord_threshold:
                 notify_discord(txt)
             logger.info(txt)
@@ -171,14 +173,14 @@ def upload_file(username):
     except Exception as e:
         print(e)
         update_storage()
-        return render_template('error.html', error=str(e), username=username)
+        return render_template('error.html', error=str(e), username=username, color=BACKGROUND_COLOR)
     update_storage()
-    return render_template('success.html', username=username)
+    return render_template('success.html', username=username, color=BACKGROUND_COLOR)
 
 @app.route('/', methods=['GET', 'POST'])
 def update_file():
     if request.method == 'GET':
-        return render_template('login.html')
+        return render_template('login.html', color=BACKGROUND_COLOR)
     if request.form['submit-button'] == 'Login':
         username = request.form.get("username")
         password = request.form.get("password")
@@ -186,13 +188,13 @@ def update_file():
             client.connect("citadel.cif.rochester.edu", username=username, password=password, timeout=30)
             client.close()
         except Exception as e:
-            return render_template('login.html')
+            return render_template('login.html', color=BACKGROUND_COLOR)
         else:
-            return render_template('index.html', username=username)
+            return render_template('index.html', username=username, color=BACKGROUND_COLOR)
     elif request.form['submit-button'] == 'Print':
         return upload_file(request.form.get("username"))
     else:
-        return render_template('index.html', username=request.form.get("username"))
+        return render_template('index.html', username=request.form.get("username"), color=BACKGROUND_COLOR)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
