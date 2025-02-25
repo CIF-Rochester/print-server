@@ -6,12 +6,17 @@
     <meta name=viewport content='width=700'>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Printer</title>
+    <title>CIF Web Printer</title>
+    <link rel="icon" href="static/cificon.png" type="image/x-icon" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
         html,
         body {
             font-size: 1.25rem;
+            background-image: url('static/cifbackground.png');
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
         }
 
         #root {
@@ -32,7 +37,7 @@
         #header>div:first-child {
             padding-right: 1rem;
             font-size: 1.75rem;
-            font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+            font-family: Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
         }
 
         #header>div:nth-child(2) {
@@ -69,6 +74,8 @@
             width: fit-content;
             margin: 2rem auto;
             padding: 0.1rem 2rem;
+            color: black;
+            background-color:white;
         }
         #footer{
             font-size: 0.9rem;
@@ -78,17 +85,16 @@
 </head>
 
 <!-- ToDo: Inherit from a base template -->
-
 <body>
     <div id="root" >
-        <div id="header">
+        <div id="header" style="color:white">
             <div>CIF Web Printer</div>
         </div>
         <div id="mainBody">
             <form id='form' method=post enctype=multipart/form-data>
-                <label for="username">Username</label>
+                <label for="username" style="color:white">Username</label>
                 <input type="text" name="username" id="username">
-                <label for="password">Password</label>
+                <label for="password" style="color:white">Password</label>
                 <input type="password" name="password" id="password">
                 <input id="form-submit" name='submit-button' type=submit value=Login>
             </form>

@@ -96,6 +96,9 @@ def convert_to_black_and_white(path, num_pages):
         with open(path, "bw") as gray_pdf:
             gray_pdf.write(img2pdf.convert(images))
 
+def notify_discord(txt):
+    pass
+
 def upload_file(username):
     retCodes = []
     try:
@@ -161,6 +164,8 @@ def upload_file(username):
                 txt += f", PRINT FAILED WITH EXIT CODE {ret.returncode}"
                 logger.error(txt)
                 return render_template('error.html', error="lpr command error - Please turn on printer")
+            if total_pages > config.print_limitations.discord_threshold:
+                notify_discord(txt)
             logger.info(txt)
 
     except Exception as e:
@@ -179,6 +184,7 @@ def update_file():
         password = request.form.get("password")
         try:
             client.connect("citadel.cif.rochester.edu", username=username, password=password, timeout=30)
+            client.close()
         except Exception as e:
             return render_template('login.html')
         else:
