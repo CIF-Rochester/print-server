@@ -28,14 +28,14 @@
         #header {
             margin-bottom: 3rem;
             text-align: center;
-            color:white;
+            color:#00ff00;
+            font-family:'Courier new';
         }
 
 
         #header>div:first-child {
             padding-right: 1rem;
             font-size: 1.75rem;
-            font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
         }
 
         #header>div:nth-child(2) {
@@ -58,6 +58,7 @@
             font-size: 1.0rem;
             background-color:{{color}};
             color:white;
+            font-family:'Courier new';
         }
 
         #form {
@@ -68,7 +69,8 @@
             grid-template-columns: 1fr 3fr;
             grid-template-rows: repeat(5, max-content);
             align-items: center;
-            color:white;
+            color:#00ff00;
+            font-family:'Courier new';
         }
 
         #form-submit {
@@ -98,20 +100,20 @@
         <div id="mainBody">
             <form id='form' method='post' enctype=multipart/form-data>
                 <input type="hidden" name="username" id="username" value={{username}}>
-                <label for='file'>File(s)</label>
+                <label for='file'>File(s):</label>
                 <input type=file name='file' multiple>
-                <label for="pages">Pages</label>
+                <label for="pages">Pages:</label>
                 <input type="text" name="pages" id="pages" placeholder="All pages">
-                <label for="copies">Copies</label>
+                <label for="copies">Copies:</label>
                 <input type="number" name="copies" value="1" min="1" id="copies">
-                <label for="color">Color</label>
+                <label for="color">Color:</label>
                 <select name="color" id="color">
                     <option value="Color">Color</option>
                     <option value="Black and White">Black and White</option>
                 </select>
-                <label for="perpage">Pages per sheet</label>
+                <label for="perpage">Pages/sheet:</label>
                 <input type="number" name="perpage" value="1" min="1" id="perpage">
-                <label for="orientation">Layout</label>
+                <label for="orientation">Layout:</label>
                 <select name="orientation" id="orientation">
                     <option value="Portrait">Portrait</option>
                     <option value="Landscape">Landscape</option>
