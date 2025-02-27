@@ -98,8 +98,16 @@ def convert_to_black_and_white(path, num_pages):
         with open(path, "bw") as gray_pdf:
             gray_pdf.write(img2pdf.convert(images))
 
-def notify_discord(txt):
-    pass
+def notify_discord(txt: str, time: str):
+    index = txt.index(" - File:")
+    user = txt[:index]
+    txt = f"[{time}]  {txt[(index + 3):]}"
+    try:
+        client.connect(config.nauticock.ip, username=config.nauticock.username, password=config.nauticock.password, timeout=30)
+        client.exec_command(config.nauticock.command + f" --text \"WARNING - User {user} attempted the following print:\n```{txt}```\"")
+        client.close()
+    except Exception as e:
+        logger.error("Unable to connect to notify NauticockBot")
 
 def upload_file(username):
     retCodes = []
@@ -152,6 +160,7 @@ def upload_file(username):
             if total_pages > config.print_limitations.max_pages:
                 txt += f", PAGE LIMIT OF {config.print_limitations.max_pages} EXCEEDED"
                 logger.error(txt)
+                notify_discord(txt, time_string_file)
                 return render_template('error.html',
                                        error=f"Page limit of {config.print_limitations.max_pages} exceeded",
                                        username=username, color=BACKGROUND_COLOR)
@@ -160,14 +169,18 @@ def upload_file(username):
             except Exception as e:
                 txt += ", FAILED TO RUN SUBPROCESS"
                 logger.error(txt)
+                if total_pages > config.print_limitations.discord_threshold:
+                    notify_discord(txt, time_string_file)
                 return render_template('error.html', error="Failed to run subprocess", username=username, color=BACKGROUND_COLOR)
             retCodes.append(ret.returncode)
             if ret.returncode != 0:
                 txt += f", PRINT FAILED WITH EXIT CODE {ret.returncode}"
                 logger.error(txt)
+                if total_pages > config.print_limitations.discord_threshold:
+                    notify_discord(txt, time_string_file)
                 return render_template('error.html', error="lpr command error - Please turn on printer", color=BACKGROUND_COLOR)
             if total_pages > config.print_limitations.discord_threshold:
-                notify_discord(txt)
+                notify_discord(txt, time_string_file)
             logger.info(txt)
 
     except Exception as e:

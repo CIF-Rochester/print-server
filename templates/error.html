@@ -46,6 +46,8 @@
 
         #mainBody {
             flex: 1;
+            color:white;
+            font-family: 'Courier new';
         }
 
 
@@ -73,12 +75,6 @@
             font-family:'Courier new';
         }
 
-        #text {
-            padding-bottom: 1rem;
-            color:white;
-            font-family = 'Courier new';
-        }
-
         #form-submit {
             grid-column: span 2;
             width: fit-content;
@@ -103,11 +99,11 @@
             <div>CIF Web Printer</div>
         </div>
         <div id="mainBody" style="text-align: center;">
-            <div id="text">Unable to submit print job</div>
-            <div id="text">
+            <div>Unable to submit print job</div>
+            <div>
                 {{error}}
             </div>
-            <div id="text">
+            <div>
                 If this result is unexpected, please create an issue <a href="https://github.com/CIF-Rochester/print-server/issues/new" style="">here</a>
             </div>
             <form id='form' method=post enctype=multipart/form-data>
