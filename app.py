@@ -102,9 +102,10 @@ def notify_discord(txt: str, time: str):
     index = txt.index(" - File:")
     user = txt[:index]
     txt = f"[{time}]  {txt[(index + 3):]}"
+    logger.info(txt)
     try:
         client.connect(config.nauticock.ip, username=config.nauticock.username, password=config.nauticock.password, timeout=30)
-        client.exec_command(config.nauticock.command + f" --text \"WARNING - User {user} attempted the following print:\n```{txt}```\"")
+        client.exec_command(config.nauticock.command + f" --user \"{user}\" --text \"{txt}\"")
         client.close()
     except Exception as e:
         logger.error("Unable to connect to notify NauticockBot")
