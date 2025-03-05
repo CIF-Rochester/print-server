@@ -102,7 +102,6 @@ def notify_discord(txt: str, time: str):
     index = txt.index(" - File:")
     user = txt[:index]
     txt = f"[{time}]  {txt[(index + 3):]}"
-    logger.info(txt)
     try:
         client.connect(config.nauticock.ip, username=config.nauticock.username, password=config.nauticock.password, timeout=30)
         client.exec_command(config.nauticock.command + f" --user \"{user}\" --text \"{txt}\"")
@@ -198,13 +197,15 @@ def update_file():
     if request.form['submit-button'] == 'Login':
         username = request.form.get("username")
         password = request.form.get("password")
-        try:
-            client.connect("citadel.cif.rochester.edu", username=username, password=password, timeout=30)
+        client.connect(config.citadel.ip, username=config.citadel.username, password=config.citadel.password,
+                       timeout=30)
+        stdin, stdout, stderr = client.exec_command(f"echo {password} | kinit {username}")
+        if stdout.readline() and not stderr.readline():
             client.close()
-        except Exception as e:
-            return render_template('login.html', color=BACKGROUND_COLOR)
-        else:
             return render_template('index.html', username=username, color=BACKGROUND_COLOR)
+        else:
+            client.close()
+            return render_template('login.html', color=BACKGROUND_COLOR)
     elif request.form['submit-button'] == 'Print':
         return upload_file(request.form.get("username"))
     else:

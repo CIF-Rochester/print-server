@@ -27,11 +27,18 @@ class Nauticock:
     command: str
 
 @dataclass
+class Citadel:
+    username: str
+    password: str
+    ip: str
+
+@dataclass
 class Config:
     logging: Logging
     printer: Printer
     print_limitations: PrintLimitations
     nauticock: Nauticock
+    citadel: Citadel
 
 def load_config(config_path: os.PathLike):
     try:
@@ -45,7 +52,8 @@ def load_config(config_path: os.PathLike):
         printer = Printer(printer_name=cfg.get("printer","printer_name"))
         print_limitations = PrintLimitations(max_pages=cfg.getint("print_limitations","max_pages"), discord_threshold=cfg.getint("print_limitations", "discord_threshold"))
         nauticock = Nauticock(username=cfg.get("nauticock", "username"), password=cfg.get("nauticock","password"),ip=cfg.get("nauticock","ip"),command=cfg.get("nauticock","command"))
-        config = Config(logging=logging, printer=printer, print_limitations=print_limitations, nauticock=nauticock)
+        citadel = Citadel(username=cfg.get("citadel","username"), password=cfg.get("citadel","password"),ip=cfg.get("citadel","ip"))
+        config = Config(logging=logging, printer=printer, print_limitations=print_limitations, nauticock=nauticock, citadel=citadel)
     except Exception as e:
         print(f"Error in config file {config_path}: {e}", file=sys.stderr)
         exit(1)
