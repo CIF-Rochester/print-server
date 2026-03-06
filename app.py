@@ -105,7 +105,7 @@ def notify_discord(txt: str, time: str):
     txt = f"[{time}]  {txt[(index + 3):]}"
     try:
         client.connect(config.nauticock.ip, username=config.nauticock.username, password=config.nauticock.password, timeout=30)
-        client.exec_command(config.nauticock.command + f" --text \"WARNING - User {user} attempted the following print:\n```{txt}```\"")
+        client.exec_command(config.nauticock.command + f" --user \"{user}\" --text \"{txt}\"")
         client.close()
     except Exception as e:
         logger.error("Unable to connect to notify NauticockBot")
@@ -113,6 +113,7 @@ def notify_discord(txt: str, time: str):
 def upload_file(username):
     retCodes = []
     try:
+        update_storage()
         pages = request.form.get('pages').replace(" ","")
         color = request.form.get('color')
         ornt  = request.form.get('orientation')
@@ -122,10 +123,8 @@ def upload_file(username):
         total_pages = 0
         for file in files:
             if not file or file.filename == '':
-                update_storage()
                 return render_template('error.html', error="No file attached", username=username, color=BACKGROUND_COLOR)
             if file.filename[-4:] != '.pdf':
-                update_storage()
                 return render_template('error.html', error="Attached file is not pdf", username=username, color=BACKGROUND_COLOR)
             current_time = datetime.now()
             time_string_file = current_time.strftime('%H.%M.%S_%m-%d-%Y')
@@ -185,10 +184,7 @@ def upload_file(username):
             logger.info(txt)
 
     except Exception as e:
-        print(e)
-        update_storage()
         return render_template('error.html', error=str(e), username=username, color=BACKGROUND_COLOR)
-    update_storage()
     return render_template('success.html', username=username, color=BACKGROUND_COLOR)
 
 @app.route('/', methods=['GET', 'POST'])
@@ -198,13 +194,17 @@ def update_file():
     if request.form['submit-button'] == 'Login':
         username = request.form.get("username")
         password = request.form.get("password")
-        try:
-            client.connect("citadel.cif.rochester.edu", username=username, password=password, timeout=30)
+        client.connect(config.citadel.ip, username=config.citadel.username, password=config.citadel.password,
+                       timeout=30)
+        stdin, stdout, stderr = client.exec_command(f"echo {password} | kinit {username}")
+        outline = stdout.readlines()
+        errline = stderr.readlines()
+        if outline and not any("incorrect" in s for s in errline) and not any("not found" in s for s in errline):
             client.close()
-        except Exception as e:
-            return render_template('login.html', color=BACKGROUND_COLOR)
-        else:
             return render_template('index.html', username=username, color=BACKGROUND_COLOR)
+        else:
+            client.close()
+            return render_template('login.html', color=BACKGROUND_COLOR)
     elif request.form['submit-button'] == 'Print':
         return upload_file(request.form.get("username"))
     else:
