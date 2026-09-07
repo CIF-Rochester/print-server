@@ -5,6 +5,7 @@ import argparse
 import tempfile
 
 import img2pdf
+from python_freeipa import ClientMeta
 
 from flask import Flask, request, redirect, url_for, render_template
 from subprocess import run
@@ -14,6 +15,7 @@ import PyPDF2
 import math
 import time
 from pymupdf import Pixmap
+from python_freeipa.exceptions import Unauthorized
 from werkzeug.utils import secure_filename
 from config import load_config, Config
 import pymupdf
@@ -24,8 +26,10 @@ PDF_TO_IMAGE_DPI = 600
 
 BACKGROUND_COLOR="#0f0f0f"
 
-client = paramiko.SSHClient()
-client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+discord_client = paramiko.SSHClient()
+discord_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+ipa_client = None
 
 app = Flask(__name__)
 
@@ -89,9 +93,9 @@ def notify_discord(txt: str, time: str):
     user = txt[:index]
     txt = f"[{time}]  {txt[(index + 3):]}"
     try:
-        client.connect(config.nauticock.ip, username=config.nauticock.username, password=config.nauticock.password, timeout=30)
-        client.exec_command(config.nauticock.command + f" --text \"WARNING - User {user} attempted the following print:\" --mono \"{txt}\"")
-        client.close()
+        discord_client.connect(config.nauticock.ip, username=config.nauticock.username, password=config.nauticock.password, timeout=30)
+        discord_client.exec_command(config.nauticock.command + f" --text \"WARNING - User {user} attempted the following print:\" --mono \"{txt}\"")
+        discord_client.close()
     except Exception as e:
         logger.error("Unable to connect to notify NauticockBot")
 
@@ -176,16 +180,11 @@ def update_file():
     if request.form['submit-button'] == 'Login':
         username = request.form.get("username")
         password = request.form.get("password")
-        client.connect(config.citadel.ip, username=config.citadel.username, password=config.citadel.password,
-                       timeout=30)
-        stdin, stdout, stderr = client.exec_command(f"echo {password} | kinit {username}")
-        outline = stdout.readlines()
-        errline = stderr.readlines()
-        if outline and not any("incorrect" in s for s in errline) and not any("not found" in s for s in errline):
-            client.close()
+        try:
+            ipa_client.login(username, password)
+            ipa_client.logout()
             return render_template('index.html', username=username, color=BACKGROUND_COLOR)
-        else:
-            client.close()
+        except Unauthorized:
             return render_template('login.html', color=BACKGROUND_COLOR)
     elif request.form['submit-button'] == 'Print':
         return upload_file(request.form.get("username"))
@@ -202,11 +201,8 @@ if __name__ == '__main__':
     path_to_cfg = args.config
     config: Config = load_config(path_to_cfg)
     logger = makeLogger(config.logging.log_path)
+    ipa_client = ClientMeta(config.citadel.ip, verify_ssl=False)
     if not os.path.exists(config.logging.file_storage_path):
         os.makedirs(config.logging.file_storage_path)
 
-
-    # from waitress import serve
-    # serve(app,host='0.0.0.0',port=8080)
-    # gunicorn -w 4 'web_printer:app' -b '0.0.0.0:8080'
     app.run(host='0.0.0.0', port=5000,debug=False)
