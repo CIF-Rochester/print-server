@@ -97,11 +97,11 @@ def get_user_points(username, database=None, cursor=None):
     cursor.execute(f"SELECT * FROM {config.database.table} WHERE netid = '{username}'")
     output = cursor.fetchone()
     if output is None:
-        cursor.execute(f"INSERT INTO {config.database.table} VALUE ('{username}', 128)")
+        cursor.execute(f"INSERT INTO {config.database.table} VALUE ('{username}', {config.print_limitations.default_given})")
         database.commit()
         if new_conn:
             database.close()
-        return 256
+        return config.print_limitations.default_given
     if new_conn:
         database.close()
     return int(output[1])
@@ -113,7 +113,7 @@ def update_points():
     output = cursor.fetchall()
     for line in output:
         points = int(line[1])
-        cursor.execute(f"UPDATE print_points SET points = {min(points + 16, 256)} WHERE netid = '{line[0]}'")
+        cursor.execute(f"UPDATE print_points SET points = {min(points + 16, config.print_limitations.max_points)} WHERE netid = '{line[0]}'")
     database.commit()
     database.close()
 
@@ -199,9 +199,9 @@ def get_num_pages_printed(file, copies, pages, per_page, sided):
 def get_points_spent(file, color, pages, per_page, copies, sided):
     points = get_num_pages_printed(file, copies, pages, per_page, sided)
     if color == 'Color':
-        points *= 2
+        points *= config.print_limitations.color_multiplier
     if sided == 'Double Sided':
-        points *= 1.5
+        points *= config.print_limitations.double_sided_multiplier
     return points
 
 @app.route('/check-print', methods=['POST'])
@@ -231,11 +231,13 @@ def check_params():
     points = 0
     for file in files:
         points += get_points_spent(file, color, pages, per_page, copies, sided)
+    if points <= 0:
+        return jsonify({"error": f"Cannot submit empty print job"}), 400
     total_points = get_user_points(username)
     if points > total_points:
         return jsonify({"error": f"Insufficient print points", "error2": f"Total points:{total_points}  Required points:{points}"}), 400
     with open(f"{BASE_DIR}/tmp/{username}/print-job", 'w') as f:
-        f.write(f"{pages}\n{color}\n{ornt}\n{per_page}\n{copies}\n{sided}")
+        f.write(f"{','.join(['.'.join(file.split('/')[-1].split('.')[:-1]) for file in files])}\n{pages}\n{color}\n{ornt}\n{per_page}\n{copies}\n{sided}")
     return jsonify({"total": total_points, "points": points}), 200
 
 @app.route('/print', methods=['GET', 'POST'])
@@ -261,7 +263,14 @@ def get_main_page():
             return render_template('error2.html', error="Print job does not match confirmed print settings", home_url=request.full_path)
         with open(f"{BASE_DIR}/tmp/{username}/print-job", 'r') as f:
             job_check = f.read().split('\n')
-        if len(job_check) < 6 or job_check[0] != str(pages) or job_check[1] != str(color) or job_check[2] != str(ornt) or job_check[3] != str(per_page) or job_check[4] != str(copies) or job_check[5] != str(sided):
+        if len(job_check) < 1:
+            return render_template('error2.html', error="Print job does not match verified print settings",home_url=request.full_path)
+        line1 = job_check[0].split(',')
+        print(job_check)
+        for file in files:
+            if not '.'.join(file.split('/')[-1].split('.')[:-1]) in line1:
+                return render_template('error2.html', error="Print job does not match verified print settings",home_url=request.full_path)
+        if len(job_check) < 7 or job_check[1] != str(pages) or job_check[2] != str(color) or job_check[3] != str(ornt) or job_check[4] != str(per_page) or job_check[5] != str(copies) or job_check[6] != str(sided):
             return render_template('error2.html', error="Print job does not match verified print settings", home_url=request.full_path)
         for file in files:
             print_file(file, copies, pages, per_page, color, ornt, sided)
