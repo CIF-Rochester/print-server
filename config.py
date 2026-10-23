@@ -21,14 +21,14 @@ class PrintLimitations:
     discord_threshold: int
 
 @dataclass
-class Nauticock:
+class Database:
     username: str
     password: str
-    ip: str
-    command: str
+    database: str
+    table: str
 
 @dataclass
-class Citadel:
+class IPA:
     username: str
     password: str
     ip: str
@@ -38,8 +38,8 @@ class Config:
     logging: Logging
     printer: Printer
     print_limitations: PrintLimitations
-    nauticock: Nauticock
-    citadel: Citadel
+    database: Database
+    ipa: IPA
 
 def load_config(config_path: os.PathLike):
     try:
@@ -52,9 +52,9 @@ def load_config(config_path: os.PathLike):
         logging = Logging(log_path=cfg.get("logging","log_path"), file_storage_path=cfg.get("logging","file_storage_path"), file_storage_time=cfg.getint("logging","file_storage_time"))
         printer = Printer(color_printer_name=cfg.get("printer","color_printer_name"), bw_printer_name=cfg.get("printer","bw_printer_name"))
         print_limitations = PrintLimitations(max_pages=cfg.getint("print_limitations","max_pages"), discord_threshold=cfg.getint("print_limitations", "discord_threshold"))
-        nauticock = Nauticock(username=cfg.get("nauticock", "username"), password=cfg.get("nauticock","password"),ip=cfg.get("nauticock","ip"),command=cfg.get("nauticock","command"))
-        citadel = Citadel(username=cfg.get("citadel","username"), password=cfg.get("citadel","password"),ip=cfg.get("citadel","ip"))
-        config = Config(logging=logging, printer=printer, print_limitations=print_limitations, nauticock=nauticock, citadel=citadel)
+        database = Database(username=cfg.get("database", "username"), password=cfg.get("database", "password"), database=cfg.get("database", "database"), table=cfg.get("database", "table"))
+        ipa = IPA(username=cfg.get("ipa","username"), password=cfg.get("ipa","password"),ip=cfg.get("ipa","ip"))
+        config = Config(logging=logging, printer=printer, print_limitations=print_limitations, database=database, ipa=ipa)
     except Exception as e:
         print(f"Error in config file {config_path}: {e}", file=sys.stderr)
         exit(1)
